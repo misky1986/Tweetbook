@@ -1,32 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using Tweetbook.Contracts.V1;
 using Tweetbook.Contracts.V1.Requests;
 using Tweetbook.Contracts.V1.Responses;
 using Tweetbook.Domain;
+using Tweetbook.Services;
 
 namespace Tweetbook.Controllers.V1
 {
     public class PostsController : Controller
     {
-        private List<Post> _posts;
+        private readonly IPostService _postService;
 
-        public PostsController()
+        public PostsController(IPostService postService)
         {
-            _posts = new List<Post>();
-            for (int i = 0; i < 5; i++)
-            {
-                _posts.Add(new Post { Id = Guid.NewGuid().ToString() });
-            }
+            _postService = postService;
         }
         
         [HttpGet(ApiRoutes.Posts.GetAll)]
         public IActionResult Index()
         {
-            return Ok(_posts);
+            return Ok(_postService.GetPosts());
+        }
+
+        [HttpGet(ApiRoutes.Posts.Get)]
+        public IActionResult Get([FromRoute]Guid postId)
+        {
+            var post = _postService.GetPostById(postId);
+
+            if(post == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(post);
         }
 
         // This is wrong. The domain object is not supposted to be use handling the external object from outside.
@@ -36,14 +43,14 @@ namespace Tweetbook.Controllers.V1
         {
             var post = new Post { Id = postRequest.Id };
 
-            if(string.IsNullOrEmpty(post.Id))
+            if(post.Id != Guid.Empty)
             {
-                post.Id = Guid.NewGuid().ToString();
+                post.Id = Guid.NewGuid();
             }
-            _posts.Add(post);
+            _postService.GetPosts().Add(post);
 
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
-            var locationUri = baseUrl + "/" + ApiRoutes.Posts.Get.Replace("{postId}", post.Id);
+            var locationUri = baseUrl + "/" + ApiRoutes.Posts.Get.Replace("{postId}", post.Id.ToString());
 
             var response = new PostResponse { Id = post.Id };
             return Created(locationUri, response);
