@@ -48,7 +48,9 @@ namespace Tweetbook
                 option.SwaggerEndpoint(swaggerOptions.UiEndpoint, swaggerOptions.Description);
             });
 
-            app.UseHttpsRedirection();            
+            app.UseHttpsRedirection();
+            
+            app.UseAuthentication();
 
             app.UseRouting();
 
