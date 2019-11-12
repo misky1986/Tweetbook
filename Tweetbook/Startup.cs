@@ -1,15 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Linq;
-using Microsoft.OpenApi.Models;
-using Tweetbook.Data;
 using Tweetbook.Installers;
-using System;
 
 namespace Tweetbook
 {
@@ -40,19 +34,20 @@ namespace Tweetbook
                 app.UseHsts();
             }
 
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             var swaggerOptions = new Options.SwaggerOptions();
             Configuration.GetSection(nameof(Options.SwaggerOptions)).Bind(swaggerOptions);
 
             app.UseSwagger(option => { option.RouteTemplate = swaggerOptions.JsonRoute; });
             app.UseSwaggerUI(option => { 
                 option.SwaggerEndpoint(swaggerOptions.UiEndpoint, swaggerOptions.Description);
-            });
-
-            app.UseHttpsRedirection();
-            
-            app.UseAuthentication();
-
-            app.UseRouting();
+            });                        
 
             app.UseEndpoints(endpoints =>
             {
