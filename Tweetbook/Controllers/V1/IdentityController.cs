@@ -4,6 +4,7 @@ using Tweetbook.Contracts.V1;
 using Tweetbook.Contracts.V1.Requests;
 using Tweetbook.Contracts.V1.Responses;
 using Tweetbook.Services;
+using System.Linq;
 
 namespace Tweetbook.Controllers.V1
 {
@@ -20,7 +21,34 @@ namespace Tweetbook.Controllers.V1
         [HttpPost(ApiRoutes.Identity.Register)]
         public async Task<IActionResult> Register([FromBody] UserRegistrationRequest request)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(new AuthFailedResponse
+                {
+                    Errors = ModelState.Values.SelectMany(x => x.Errors.Select(xx => xx.ErrorMessage))
+                });
+            }
+
             var authResponse = await _identityService.RegisterAsync(request.Email, request.Password);
+
+            if (!authResponse.Succcess)
+            {
+                return BadRequest(new AuthFailedResponse
+                {
+                    Errors = authResponse.Errors
+                });
+            }
+
+            return Ok(new AuthSuccessResponse
+            {
+                Token = authResponse.Token
+            });
+        }
+
+        [HttpPost(ApiRoutes.Identity.Login)]
+        public async Task<IActionResult> Register([FromBody] UserLoginRequest request)
+        {
+            var authResponse = await _identityService.LoginAsync(request.Email, request.Password);
 
             if (!authResponse.Succcess)
             {
