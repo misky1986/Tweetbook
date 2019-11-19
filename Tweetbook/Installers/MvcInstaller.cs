@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Tweetbook.Options;
@@ -21,6 +23,18 @@ namespace Tweetbook.Installers
             services.AddScoped<IIdentityService, IdentityService>();
 
             services.AddControllers();
+            IdentityModelEventSource.ShowPII = true;
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                RequireExpirationTime = false,
+                ValidateLifetime = true
+            };
+
+            services.AddSingleton(tokenValidationParameters);
 
             services.AddAuthentication(x =>
             {
@@ -31,18 +45,11 @@ namespace Tweetbook.Installers
             .AddJwtBearer(x =>
             {
                 x.SaveToken = true;
-                x.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    RequireExpirationTime = false,
-                    ValidateLifetime = true
-                };
+                x.TokenValidationParameters = tokenValidationParameters;
             });
 
-            services.AddSwaggerGen(x => {
+            services.AddSwaggerGen(x =>
+            {
                 x.SwaggerDoc("v1", new OpenApiInfo { Title = "Tweetbook API", Version = "v1" });
 
                 x.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -50,7 +57,7 @@ namespace Tweetbook.Installers
                     Description = "JWT Authorization header using bearer scheme",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,                    
+                    Type = SecuritySchemeType.ApiKey,
                 });
 
                 x.AddSecurityRequirement(new OpenApiSecurityRequirement()
@@ -62,11 +69,11 @@ namespace Tweetbook.Installers
                             {
                                 Id = "Bearer",
                                 Type = ReferenceType.SecurityScheme
-                                
+
                             }
                         }, new List<string>()
                     }
-                });               
+                });
             });
         }
     }
