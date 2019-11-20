@@ -97,18 +97,18 @@ namespace Tweetbook.Services
                     new Claim(JwtRegisteredClaimNames.Email, user.Email),
                     new Claim("id", user.Id)
                 }),
-                Expires = DateTime.Now.Add(_jwtSettings.TokenLifetime),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                Expires = DateTime.UtcNow.Add(_jwtSettings.TokenLifetime),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                IssuedAt = DateTime.UtcNow
             };
-
-            var token = tokenHandler.CreateToken(tokenDescription);
+            var token = tokenHandler.CreateToken(tokenDescription);            
 
             var refreshToken = new RefreshToken
             {
                 JwtId = token.Id,
                 UserId = user.Id,
-                CreationDate = DateTime.Now,
-                ExpiryDate = DateTime.Now.AddMonths(6)
+                CreationDate = DateTime.UtcNow,
+                ExpiryDate = DateTime.UtcNow.AddMonths(6)
             };
 
             await _dataContext.RefreshTokens.AddAsync(refreshToken);
@@ -133,10 +133,10 @@ namespace Tweetbook.Services
 
             var expiryDateUnix = long.Parse(validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
 
-            var expiryDateTimeUtc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Local)
+            var expiryDateTimeUtc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 .AddSeconds(expiryDateUnix);
 
-            if(expiryDateTimeUtc > DateTime.Now)
+            if(expiryDateTimeUtc > DateTime.UtcNow)
             {
                 return new AuthenticationResult { Errors = new[] { "This token hasn't expired yet" } };
             }
@@ -150,7 +150,7 @@ namespace Tweetbook.Services
                 return new AuthenticationResult { Errors = new[] { "This refresh token does not exist" } };
             }
 
-            if(DateTime.Now > storedRefreshToken.ExpiryDate)
+            if(DateTime.UtcNow > storedRefreshToken.ExpiryDate)
             {
                 return new AuthenticationResult { Errors = new[] { "This refresh token has expired" } };
             }
