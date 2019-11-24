@@ -1,18 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using System.Threading.Tasks;
 using Tweetbook.Contracts.V1;
 using Tweetbook.Contracts.V1.Requests;
 using Tweetbook.Contracts.V1.Responses;
 using Tweetbook.Services;
-using System.Linq;
 
 namespace Tweetbook.Controllers.V1
 {
-    [Route("api/[controller]")]
-    [ApiController]
     public class IdentityController : Controller
     {
         private readonly IIdentityService _identityService;
+
         public IdentityController(IIdentityService identityService)
         {
             _identityService = identityService;
@@ -28,8 +27,7 @@ namespace Tweetbook.Controllers.V1
                     Errors = ModelState.Values.SelectMany(x => x.Errors.Select(xx => xx.ErrorMessage))
                 });
             }
-
-            var authResponse = await _identityService.RegisterAsync(request.Email, request.Password);
+            var authResponse = await _identityService.RegisterAsync(request.Email, request.Password);            
 
             if (!authResponse.Succcess)
             {

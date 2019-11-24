@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Tweetbook.Contracts.V1
+﻿namespace Tweetbook.Contracts.V1
 {
     static public class ApiRoutes
     {
@@ -22,9 +17,9 @@ namespace Tweetbook.Contracts.V1
 
         public static class Identity
         {
-            public const string Login = Base + "identity/login";
-            public const string Register = Base + "identity/register";
-            public const string Refresh = Base + "identity/refresh";
+            public const string Login = Base + "/identity/login";
+            public const string Register = Base + "/identity/register";
+            public const string Refresh = Base + "/identity/refresh";
         }
     }
 }

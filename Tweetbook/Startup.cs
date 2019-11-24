@@ -47,12 +47,9 @@ namespace Tweetbook
             app.UseSwagger(option => { option.RouteTemplate = swaggerOptions.JsonRoute; });
             app.UseSwaggerUI(option => { 
                 option.SwaggerEndpoint(swaggerOptions.UiEndpoint, swaggerOptions.Description);
-            });                        
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
             });
+
+            app.UseMvc();
         }
     }
 }
