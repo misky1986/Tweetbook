@@ -7,5 +7,10 @@ When things has changes that could be a DbSet has been added we need to tell Ent
 
 This is done with the following two steps:
 
+Powershell:
 * Add-Migration "Description"
 * Update-Database
+
+dotnet:
+* dotnet ef migrations add <some\-descriptive\-text>
+* dotnet ef database update

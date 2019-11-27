@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Tweetbook.Contracts.V1;
 using Tweetbook.Contracts.V1.Requests;
@@ -12,7 +13,7 @@ using Tweetbook.Services;
 
 namespace Tweetbook.Controllers.V1
 {
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class PostsController : Controller
     {
         private readonly IPostService _postService;
@@ -46,12 +47,16 @@ namespace Tweetbook.Controllers.V1
         [HttpPost(ApiRoutes.Posts.Create)]
         public async Task<IActionResult> Create([FromBody] CreatePostRequest postRequest)
         {
+
+            var newPostId = Guid.NewGuid();
             var post = new Post
-            { 
+            {
+                Id = newPostId,
                 Name = postRequest.Name,
-                UserId = HttpContext.GetUserId()
+                UserId = HttpContext.GetUserId(),
+                Tags = postRequest.Tags.Select(x => new PostTag { PostId = newPostId, TagName = x }).ToList()
             };
-           
+
             await _postService.CreatePostAsync(post);
 
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
